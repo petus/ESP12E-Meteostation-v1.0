@@ -24,7 +24,7 @@
 const char* ssid     = "ssid";
 const char* password = "password";
 
-const char* host = "petus1.tmep.cz";
+const char* host = "HostName.tmep.cz";
 
 SI7021 sensor;
 
