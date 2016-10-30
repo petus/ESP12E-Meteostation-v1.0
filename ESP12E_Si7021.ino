@@ -1,5 +1,5 @@
 /**
- * NodeMCU + Si7021 = Meteostation
+ * NodeMCU (ESP12E) + Si7021 = Meteostation
  *
  * made by Petus
  * http://petus.cz
@@ -21,7 +21,7 @@
 
 #define SLEEP_DELAY_IN_SECONDS  30
 
-const char* ssid     = "ssid";
+const char* ssid     = "SSID";
 const char* password = "password";
 
 const char* host = "HostName.tmep.cz";
@@ -107,7 +107,8 @@ void loop() {
   Serial.println();
   Serial.println("closing connection");
 
-  //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);
+  //use if you want to use deep sleep - connect RST and D0 (GPIO16)
+  //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);  
   delay(60000);
   
 }
