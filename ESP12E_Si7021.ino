@@ -55,11 +55,22 @@ void setup() {
 
 
 void loop() {
-  delay(500);
+  int temperatureH = 0;
+  unsigned int temperatureL = 0;
   int temperature = sensor.getCelsiusHundredths();
-  int temperatureH = temperature/100; 
-  int temperatureL = temperature - (temperatureH * 100);
-  int humidity = sensor.getHumidityPercent();
+  unsigned int humidity = sensor.getHumidityPercent();
+  
+  if(0 == temperature)
+  {
+    temperatureH = 0;
+    temperatureL = 0;  
+  }
+  else
+  {
+    temperatureH = temperature/100;
+    temperatureL = abs(temperature) - (abs(temperatureH) * 100);
+  }
+  
   Serial.print("Temperature:");
   Serial.print(temperature);
   Serial.print("\n");
@@ -109,6 +120,6 @@ void loop() {
 
   //use if you want to use deep sleep - connect RST and D0 (GPIO16)
   //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);  
-  delay(60000);
+  delay(10000);
   
 }
