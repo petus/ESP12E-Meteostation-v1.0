@@ -1,3 +1,4 @@
+
 /**
  * NodeMCU (ESP12E) + Si7021 = Meteostation
  *
@@ -19,22 +20,29 @@
 
 #define ARDUINO_ARCH_ESP8266
 
-#define SLEEP_DELAY_IN_SECONDS  30
+#define SLEEP_DELAY_IN_SECONDS  300
 
 const char* ssid     = "SSID";
-const char* password = "password";
+const char* password = "PASSWORD";
 
 const char* host = "HostName.tmep.cz";
 
 SI7021 sensor;
 
 void setup() {
+  unsigned int numberOfConnections= 0;
+  
   Serial.begin(9600); // Open serial connection to report values to host
   delay(10);
-
    
   Serial.println();
   Serial.println();
+
+  Serial.print("Meteostation by Petus\n");
+  Serial.print("http://chiptron.cz\n");
+  Serial.print("http://time4ee.com\n");
+  Serial.println("FW version: 1.1\n");
+  
   Serial.print("Connecting to ");
   Serial.println(ssid);
   
@@ -43,6 +51,19 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
   delay(500);
   Serial.print(".");
+  numberOfConnections++;
+
+  Serial.println("Number Of Connections: ");
+  Serial.println(numberOfConnections);
+
+  // if ESP12E can't connect to WiFi -> enable deep.sleep
+  if (numberOfConnections > 10)
+    {
+        //if you want to use deep sleep, connect RST with D0 (GPIO16)
+        //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);
+        delay(1000);
+        return;
+    }
   }
 
   Serial.println("");
@@ -55,26 +76,34 @@ void setup() {
 
 
 void loop() {
-  int temperatureH = 0;
+  unsigned int temperatureH = 0;
   unsigned int temperatureL = 0;
   int temperature = sensor.getCelsiusHundredths();
   unsigned int humidity = sensor.getHumidityPercent();
-  
-  if(0 == temperature)
+
+  if (temperature < 0)
   {
-    temperatureH = 0;
-    temperatureL = 0;  
+    temperatureH = abs(temperature)/100;
+    temperatureL = abs(temperature) - (temperatureH * 100);
   }
   else
   {
     temperatureH = temperature/100;
-    temperatureL = abs(temperature) - (abs(temperatureH) * 100);
+    temperatureL = temperature - (temperatureH * 100);
   }
+  
   
   Serial.print("Temperature:");
   Serial.print(temperature);
   Serial.print("\n");
-  Serial.print("TemperatureH:");
+  if (temperature < 0)
+  {
+    Serial.print("TemperatureH:-");
+  }
+  else
+  {
+    Serial.print("TemperatureH:");
+  }
   Serial.print(temperatureH);
   Serial.print("\n");
   Serial.print("TemperatureL:");
@@ -101,10 +130,21 @@ void loop() {
   Serial.print("Requesting URL: ");
   Serial.println(url);
 
+  if(temperature < 0)
+  {
   // This will send the request to the server
-  client.print(String("GET ") + url + "tempC=" + temperatureH + "." + temperatureL + "&humV=" + humidity + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" + 
-               "Connection: close\r\n\r\n");
+    client.print(String("GET ") + url + "tempC=-" + temperatureH + "." + temperatureL + "&humV=" + humidity + " HTTP/1.1\r\n" +
+             "Host: " + host + "\r\n" + 
+             "Connection: close\r\n\r\n");
+  }
+  else
+  {
+  // This will send the request to the server
+    client.print(String("GET ") + url + "tempC=" + temperatureH + "." + temperatureL + "&humV=" + humidity + " HTTP/1.1\r\n" +
+             "Host: " + host + "\r\n" + 
+             "Connection: close\r\n\r\n"); 
+  }
+
   delay(10);
 
   // Read all the lines of the reply from server and print them to Serial
@@ -118,8 +158,8 @@ void loop() {
   Serial.println();
   Serial.println("closing connection");
 
-  //use if you want to use deep sleep - connect RST and D0 (GPIO16)
-  //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);  
+  //if you want to use deep sleep, connect RST with D0 (GPIO16)
+  //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);
   delay(10000);
   
 }
