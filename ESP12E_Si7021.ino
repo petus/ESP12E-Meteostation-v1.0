@@ -4,6 +4,7 @@
  *
  * made by Petus
  * http://petus.cz
+ * http://chiptron.cz
  * http://time4ee.com
  *
  * Si7021 library - https://github.com/LowPowerLab/SI7021
@@ -20,7 +21,7 @@
 
 #define ARDUINO_ARCH_ESP8266
 
-#define SLEEP_DELAY_IN_SECONDS  300
+#define SLEEP_DELAY_IN_SECONDS  30
 
 const char* ssid     = "SSID";
 const char* password = "PASSWORD";
@@ -41,7 +42,7 @@ void setup() {
   Serial.print("Meteostation by Petus\n");
   Serial.print("http://chiptron.cz\n");
   Serial.print("http://time4ee.com\n");
-  Serial.println("FW version: 1.1\n");
+  Serial.println("FW version: 1.2\n");
   
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -49,15 +50,15 @@ void setup() {
   WiFi.begin(ssid, password);
   
   while (WiFi.status() != WL_CONNECTED) {
-  delay(500);
-  Serial.print(".");
-  numberOfConnections++;
+    delay(500);
+    Serial.print(".");
+    numberOfConnections++;
 
-  Serial.println("Number Of Connections: ");
-  Serial.println(numberOfConnections);
+    Serial.println("Number Of Connections:");
+    Serial.println(numberOfConnections);
 
-  // if ESP12E can't connect to WiFi -> enable deep.sleep
-  if (numberOfConnections > 10)
+    // if ESP12E can't connect to WiFi -> enable deep.sleep
+    if (numberOfConnections > 10)
     {
         //if you want to use deep sleep, connect RST with D0 (GPIO16)
         //ESP.deepSleep(SLEEP_DELAY_IN_SECONDS * 1000000, WAKE_RF_DEFAULT);
@@ -76,42 +77,8 @@ void setup() {
 
 
 void loop() {
-  unsigned int temperatureH = 0;
-  unsigned int temperatureL = 0;
   int temperature = sensor.getCelsiusHundredths();
   unsigned int humidity = sensor.getHumidityPercent();
-
-  if (temperature < 0)
-  {
-    temperatureH = abs(temperature)/100;
-    temperatureL = abs(temperature) - (temperatureH * 100);
-  }
-  else
-  {
-    temperatureH = temperature/100;
-    temperatureL = temperature - (temperatureH * 100);
-  }
-  
-  
-  Serial.print("Temperature:");
-  Serial.print(temperature);
-  Serial.print("\n");
-  if (temperature < 0)
-  {
-    Serial.print("TemperatureH:-");
-  }
-  else
-  {
-    Serial.print("TemperatureH:");
-  }
-  Serial.print(temperatureH);
-  Serial.print("\n");
-  Serial.print("TemperatureL:");
-  Serial.print(temperatureL);
-  Serial.print("\n");
-  Serial.print("Humidity:");
-  Serial.print(humidity);
-  Serial.print("\n");
 
   Serial.print("connecting to ");
   Serial.println(host);
@@ -130,20 +97,12 @@ void loop() {
   Serial.print("Requesting URL: ");
   Serial.println(url);
 
-  if(temperature < 0)
-  {
+  //temperatureH = String(temperature/100.0, 2);
+
   // This will send the request to the server
-    client.print(String("GET ") + url + "tempC=-" + temperatureH + "." + temperatureL + "&humV=" + humidity + " HTTP/1.1\r\n" +
+    client.print(String("GET ") + url + "tempC=" + String(temperature/100.0, 2) + "&humV=" + humidity + " HTTP/1.1\r\n" +
              "Host: " + host + "\r\n" + 
              "Connection: close\r\n\r\n");
-  }
-  else
-  {
-  // This will send the request to the server
-    client.print(String("GET ") + url + "tempC=" + temperatureH + "." + temperatureL + "&humV=" + humidity + " HTTP/1.1\r\n" +
-             "Host: " + host + "\r\n" + 
-             "Connection: close\r\n\r\n"); 
-  }
 
   delay(10);
 
